@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ .Chart.Name }}"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: "{{ .Chart.Name }}"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: "{{ .Chart.Name }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ .Chart.Name }}"
+{{- if .Values.podAnnotations }}
+      annotations:
+        {{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccountName }}
+{{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        - name: {{ .Values.image.pullSecrets }}
+{{- end }}
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        env:
+          - name: WELLKNOWN_SERVICE_LOG_LEVEL
+            value: {{ .Values.config.loglevel }}
+          - name: WELLKNOWN_SERVICE_IS_DEV
+            value: "{{ .Values.config.isdev }}"
+          - name: WELLKNOWN_SERVICE_LISTEN_ADDR
+            value: {{ .Values.server.http.host }}  
+          - name: WELLKNOWN_SERVICE_LISTEN_PORT
+            value: "{{ .Values.server.http.port }}"
+          - name: WELLKNOWN_SERVICE_POSTGRES_HOST
+            value: {{ .Values.config.postgres.host }}  
+          - name: WELLKNOWN_SERVICE_POSTGRES_PORT
+            value: "{{ .Values.config.postgres.port }}"
+          - name: WELLKNOWN_SERVICE_POSTGRES_DATABASE
+            value: {{ .Values.config.postgres.database }} 
+          - name: WELLKNOWN_SERVICE_POSTGRES_USER
+            value: {{ .Values.config.postgres.user }}
+          - name:  WELLKNOWN_SERVICE_POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                  name: {{ .Values.config.postgres.password.name }}
+                  key: {{ .Values.config.postgres.password.key }}
+          {{- if .Values.config.postgres.params}}
+          - name: WELLKNOWN_SERVICE_POSTGRES_PARAMS
+            value: {{ .Values.config.postgres.params }} 
+           {{- end}} 
+          - name: WELLKNOWN_SERVICE_NATS_URL
+            value: {{ .Values.config.nats.url }}
+          - name: WELLKNOWN_SERVICE_NATS_QUEUE_GROUP
+            value: {{ .Values.config.nats.queuegroup }}
+          {{- if .Values.config.nats.requesttimeout}}
+          - name: WELLKNOWN_SERVICE_NATS_REQUEST_TIMEOUT
+            value: "{{ .Values.config.nats.requesttimeout }}"
+          {{- end}} 
+          - name: WELLKNOWN_SERVICE_OPEN_ID_ISSUER
+            value: {{ .Values.config.issuer }}
+           {{- if .Values.config.importer.git}}
+          - name: WELLKNOWN_SERVICE_CREDENTIAL_ISSUER_IMPORTER
+            value: GIT
+          - name: WELLKNOWN_SERVICE_CREDENTIAL_GIT_IMAGE_PATH
+            value: {{ .Values.config.importer.git.imagepath }}
+          - name: WELLKNOWN_SERVICE_CREDENTIAL_GIT_REPO
+            value: {{ .Values.config.importer.git.repo }}
+          - name: WELLKNOWN_SERVICE_CREDENTIAL_GIT_TOKEN
+            value: {{ .Values.config.importer.git.token }}
+          - name: WELLKNOWN_SERVICE_CREDENTIAL_GIT_INTERVAL
+            value: "{{ .Values.config.importer.git.interval }}"
+           {{- end}}
+           {{- if .Values.config.importer.broadcast}}
+          - name: WELLKNOWN_SERVICE_CREDENTIAL_ISSUER_IMPORTER
+            value: BROADCAST
+           {{- end}}
+        ports:
+        - name: http
+          containerPort: {{ .Values.server.http.port }}
+        readinessProbe:
+          httpGet:
+            path:  /v1/metrics/health
+            port: {{ .Values.server.http.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 2
+          failureThreshold: 2
+          timeoutSeconds: 5
