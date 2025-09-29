@@ -2,7 +2,7 @@ apiVersion: v2
 appVersion: v1.0.0
 description: Well Known Service
 name: well-known-service
-version: 1.0.1-tag
+version: 1.0.2-tag
 dependencies:
   - name: library
     version: 1.1.1

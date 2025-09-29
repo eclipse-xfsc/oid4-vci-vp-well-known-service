@@ -44,8 +44,8 @@ require (
 	github.com/eclipse-xfsc/cloud-event-provider v0.1.5 // indirect
 	github.com/eclipse-xfsc/crypto-provider-core v1.4.1 // indirect
 	github.com/eclipse-xfsc/did-core v1.0.2 // indirect
-	github.com/eclipse-xfsc/microservice-core-go v1.1.0 // indirect
-	github.com/eclipse-xfsc/nats-message-library v1.1.13 // indirect
+	github.com/eclipse-xfsc/microservice-core-go v1.1.1 // indirect
+	github.com/eclipse-xfsc/nats-message-library v1.1.14 // indirect
 	github.com/eclipse-xfsc/oid4-vci-vp-library v1.4.6 // indirect
 	github.com/eclipse-xfsc/ssi-jwt v1.2.1 // indirect
 	github.com/eclipse/paho.golang v0.12.0 // indirect
@@ -53,7 +53,7 @@ require (
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
-	github.com/go-logr/logr v1.4.2 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-logr/zapr v1.3.0 // indirect
 	github.com/go-openapi/jsonpointer v0.21.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.0 // indirect
@@ -65,7 +65,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/golang-migrate/migrate/v4 v4.18.2 // indirect
+	github.com/golang-migrate/migrate/v4 v4.19.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -92,7 +92,7 @@ require (
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc v1.0.6 // indirect
 	github.com/lestrrat-go/iter v1.0.2 // indirect
-	github.com/lestrrat-go/jwx/v2 v2.1.5 // indirect
+	github.com/lestrrat-go/jwx/v2 v2.1.6 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/magiconair/properties v1.8.10 // indirect

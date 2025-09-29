@@ -56,7 +56,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	issuerSvc := service.NewIssuerService(pgIssuers.NewStore(pgDb, *logger))
+	issuerSvc := service.NewIssuerService(pgIssuers.NewStore(pgDb, *logger, conf))
 
 	var imp importer.Importer
 	switch conf.CredentialIssuer.Importer {

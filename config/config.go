@@ -17,12 +17,13 @@ const (
 type Config struct {
 	cfgPkg.BaseConfig `envconfig:"CORE"`
 
-	Postgres         postgresPkg.Config            `envconfig:"POSTGRES"`
-	Nats             cloudeventprovider.NatsConfig `envconfig:"NATS"`
-	Git              GitConfig                     `envconfig:"GIT"`
-	JwtIssuer        JwtIssuerConfig               `envconfig:"OPEN_ID"`
-	CredentialIssuer CredentialIssuerConfig        `envconfig:"CREDENTIAL_ISSUER"`
-	Gateway          GatewayConfig                 `envconfig:"GATEWAY"`
+	Postgres                          postgresPkg.Config            `envconfig:"POSTGRES"`
+	Nats                              cloudeventprovider.NatsConfig `envconfig:"NATS"`
+	Git                               GitConfig                     `envconfig:"GIT"`
+	JwtIssuer                         JwtIssuerConfig               `envconfig:"OPEN_ID"`
+	CredentialIssuer                  CredentialIssuerConfig        `envconfig:"CREDENTIAL_ISSUER"`
+	Gateway                           GatewayConfig                 `envconfig:"GATEWAY"`
+	CredentialConfigurationExpiration int                           `envconfig:"CREDENTIAL_CONFIGURATION_EXPIRATION" default:"60"`
 }
 
 type GatewayConfig struct {

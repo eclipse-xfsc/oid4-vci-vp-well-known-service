@@ -81,6 +81,8 @@ spec:
           - name: WELLKNOWN_SERVICE_CREDENTIAL_GIT_INTERVAL
             value: "{{ .Values.config.importer.git.interval }}"
            {{- end}}
+          - name: WELLKNOWN_SERVICE_CREDENTIAL_CONFIGURATION_EXPIRATION
+            value: {{ .Values.config.credential.configexpiration }}
            {{- if .Values.config.importer.broadcast}}
           - name: WELLKNOWN_SERVICE_CREDENTIAL_ISSUER_IMPORTER
             value: BROADCAST

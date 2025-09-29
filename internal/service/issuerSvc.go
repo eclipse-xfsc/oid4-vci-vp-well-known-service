@@ -24,7 +24,7 @@ func NewIssuerService(store issuers.Store) IssuerService {
 
 func (s IssuerService) GetIssuer(ctx context.Context, tenantID string, withInternal bool) (*credential.IssuerMetadata, error) {
 	log := ctxPkg.GetLogger(ctx)
-	issuer, err := s.store.Get(ctx, tenantID)
+	issuer, err := s.store.GetIssuerRecord(ctx, tenantID)
 	if err != nil {
 		log.Error(err, "Issuer Record not found", nil)
 		return nil, err
@@ -80,7 +80,7 @@ func (s IssuerService) GetIssuer(ctx context.Context, tenantID string, withInter
 func (s IssuerService) UpsertIssuer(ctx context.Context, tenantID string, issuer credential.IssuerMetadata) error {
 	log := ctxPkg.GetLogger(ctx)
 
-	storedIssuer, err := s.store.Get(ctx, tenantID)
+	storedIssuer, err := s.store.GetIssuerRecord(ctx, tenantID)
 	if err != nil && !errors.Is(err, database.ErrNotFound) {
 		return err
 	}
@@ -132,7 +132,7 @@ func (s IssuerService) UpsertIssuer(ctx context.Context, tenantID string, issuer
 			CredentialIdentifiersSupported: issuer.CredentialIdentifiersSupported,
 		}
 
-		if err := s.store.Insert(ctx, *storedIssuer); err != nil {
+		if err := s.store.InsertIssuerRecord(ctx, *storedIssuer); err != nil {
 			log.Error(err, "failed to insert new issuer", "prev", errors.Unwrap(err))
 			return err
 		}
@@ -153,14 +153,6 @@ func (s IssuerService) UpsertIssuer(ctx context.Context, tenantID string, issuer
 	}
 
 	finalCs := make([]issuers.CredentialsSupported, 0)
-
-	//Kick out outdated
-	for _, cs := range storedIssuer.CredentialsSupported {
-		if cs.LastSeen.Add(time.Second * 40).Before(now) {
-			continue
-		}
-		finalCs = append(finalCs, cs)
-	}
 
 	//Update last seen if exist
 	for i, c := range finalCs {
@@ -188,7 +180,58 @@ func (s IssuerService) UpsertIssuer(ctx context.Context, tenantID string, issuer
 
 	update.CredentialsSupported = finalCs
 
-	if err := s.store.Update(ctx, tenantID, issuer.CredentialIssuer, update); err != nil {
+	if err := s.store.UpdateIssuerRecord(ctx, tenantID, issuer.CredentialIssuer, update); err != nil {
+		log.Error(err, "failed to update existing issuer")
+		return err
+	}
+
+	return nil
+}
+
+// UpsertIssuer will store the given issuer or, if it already exists, update the existing record
+func (s IssuerService) UpsertConfiguration(ctx context.Context, tenantID string, configurationId string, configuration credential.CredentialConfiguration) error {
+	log := ctxPkg.GetLogger(ctx)
+
+	storedConfiguration, err := s.store.GetConfigurationsRecord(ctx, tenantID)
+	if err != nil && !errors.Is(err, database.ErrNotFound) {
+		return err
+	}
+	now := time.Now()
+
+	sup := issuers.CredentialsSupported{
+		TenantID:                               tenantID,
+		CredentialConfigurationID:              configurationId,
+		Format:                                 configuration.Format,
+		Scope:                                  configuration.Scope,
+		CryptographicBindingMethodsSupported:   configuration.CryptographicBindingMethodsSupported,
+		CryptographicSigningAlgValuesSupported: configuration.CredentialSigningAlgValuesSupported,
+		CredentialDefinition:                   configuration.CredentialDefinition,
+		ProofTypesSupported:                    configuration.ProofTypesSupported,
+		Schema:                                 configuration.Schema,
+		Subject:                                configuration.Subject,
+		Display:                                configuration.Display,
+		Vct:                                    configuration.Vct,
+		Claims:                                 configuration.Claims,
+		Order:                                  configuration.Order,
+		LastSeen:                               now,
+	}
+	isNew := true
+	finalCs := make([]issuers.CredentialsSupported, 0)
+	for _, c := range storedConfiguration {
+		if c.CredentialConfigurationID == configurationId {
+			isNew = false
+			continue
+		}
+		finalCs = append(finalCs, c)
+	}
+	// cs := make([]issuers.CredentialsSupported, 0)
+
+	if isNew {
+		sup.FirstSeen = now
+	}
+
+	finalCs = append(finalCs, sup)
+	if err := s.store.UpdateConfigurationsSupported(ctx, tenantID, finalCs); err != nil {
 		log.Error(err, "failed to update existing issuer")
 		return err
 	}

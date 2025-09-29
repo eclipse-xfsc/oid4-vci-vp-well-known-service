@@ -67,3 +67,5 @@ config:
   issuer: changeme
   importer:
     broadcast:
+  credential:
+    configexpiration: 60

@@ -8,9 +8,12 @@ import (
 )
 
 type Store interface {
-	Get(ctx context.Context, tenantID string) (*Issuer, error)
-	Insert(ctx context.Context, issuer Issuer) error
-	Update(ctx context.Context, tenantID, credentialIssuer string, update IssuerUpdate) error
+	GetIssuerRecord(ctx context.Context, tenantID string) (*Issuer, error)
+	GetConfigurationsRecord(ctx context.Context, tenantID string) ([]CredentialsSupported, error)
+	InsertIssuerRecord(ctx context.Context, issuer Issuer) error
+	UpdateIssuerRecord(ctx context.Context, tenantID, credentialIssuer string, update IssuerUpdate) error
+	InsertConfigurationsSupported(ctx context.Context, tenantID string, cs []CredentialsSupported) error
+	UpdateConfigurationsSupported(ctx context.Context, tenantID string, update []CredentialsSupported) error
 	// List(ctx context.Context, tenantID string) ([]Issuer, error)
 	// ListAll(ctx context.Context) ([]Issuer, error)
 }
@@ -55,6 +58,7 @@ type IssuerUpdate struct {
 }
 
 type CredentialsSupported struct {
+	TenantID                               string
 	CredentialConfigurationID              string
 	Format                                 string
 	Scope                                  string
@@ -73,6 +77,7 @@ type CredentialsSupported struct {
 }
 
 type CredentialSupportedRow struct {
+	TenantID                               string
 	CredentialConfigurationID              *string
 	Format                                 *string
 	Scope                                  *string

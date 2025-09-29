@@ -3,6 +3,7 @@ package broadcast
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/eclipse-xfsc/oid4-vci-vp-well-known-service/internal/importer"
 
@@ -69,10 +70,13 @@ func (b *Importer) listen(ctx context.Context) error {
 		ce.ConnectionTypeSub,
 		messaging.TopicIssuerRegistration,
 	)
+
 	if err != nil {
+		b.log.Error(err, "Listen on Nats failed ")
 		return err
 	}
 
+	b.log.Info("Subscribe on topic " + messaging.TopicIssuerRegistration)
 	for {
 		if err := client.SubCtx(ctx, b.handleEvent); err != nil {
 			b.log.Error(err, "cloudEventProvider.Sub failed")
@@ -82,11 +86,31 @@ func (b *Importer) listen(ctx context.Context) error {
 
 // TODO: define events?!
 func (b *Importer) handleEvent(e event.Event) {
+	b.log.Info("received event:", "type", e.Type(), "data", e.String())
 	switch e.Type() {
 	case messaging.EventTypeIssuerRegistration:
 		b.handleIssuerEvent(context.TODO(), e.Data())
+	case messaging.EventTypeIssuerCredentialRegistration:
+		b.handleConfigurationEvent(context.TODO(), e.Data())
 	default:
-		b.log.Info("received unknown event type", "type", e.Type(), "data", e.String())
+		b.log.Info("received unknown event type", "type", e.Type())
+	}
+}
+
+func (b *Importer) handleConfigurationEvent(ctx context.Context, data []byte) {
+	var msg messaging.CredentialRegistration
+	if err := json.Unmarshal(data, &msg); err != nil {
+		b.log.Error(err, "failed to unmarshal issuer")
+		return
+	}
+
+	if msg.TenantId == "" {
+		b.log.Error(errors.New("invalid request.message (empty tenantID)"), "msg", msg)
+		return
+	}
+
+	if err := b.svc.UpsertConfiguration(ctx, msg.TenantId, msg.ConfigurationId, msg.CredentialConfiguration); err != nil {
+		b.log.Error(err, "failed to UpsertIssuer")
 	}
 }
 
@@ -94,10 +118,12 @@ func (b *Importer) handleIssuerEvent(ctx context.Context, data []byte) {
 	var msg messaging.IssuerRegistration
 	if err := json.Unmarshal(data, &msg); err != nil {
 		b.log.Error(err, "failed to unmarshal issuer")
+		return
 	}
 
 	if msg.TenantId == "" {
-		b.log.Info("invalid request.message (empty tenantID)", "msg", msg)
+		b.log.Error(errors.New("invalid request.message (empty tenantID)"), "msg", msg)
+		return
 	}
 
 	if err := b.svc.UpsertIssuer(ctx, msg.TenantId, msg.Issuer); err != nil {
