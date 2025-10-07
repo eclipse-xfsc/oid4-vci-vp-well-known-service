@@ -21,7 +21,7 @@ ingress:
    enabled: true
    annotations:
      kubernetes.io/ingress.class: nginx
-     nginx.ingress.kubernetes.io/rewrite-target: /v1/tenants/tenant_space/$2
+     nginx.ingress.kubernetes.io/rewrite-target: /v1/tenants/tenant_space/.well-known/openid-credential-issuer
    hosts:
      - host: changeme
        paths:
