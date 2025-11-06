@@ -42,6 +42,11 @@ func (s IssuerService) GetIssuer(ctx context.Context, tenantID string, withInter
 			ProofTypesSupported:                  supported.ProofTypesSupported,
 			CredentialDefinition:                 supported.CredentialDefinition,
 			Display:                              supported.Display,
+			Vct:                                  supported.Vct,
+			Claims:                               supported.Claims,
+			Order:                                supported.Order,
+			Schema:                               supported.Schema,
+			Subject:                              supported.Subject,
 		}
 
 		if withInternal {
@@ -63,6 +68,7 @@ func (s IssuerService) GetIssuer(ctx context.Context, tenantID string, withInter
 		CredentialIdentifiersSupported:    issuer.CredentialIdentifiersSupported,
 		SignedMetadata:                    issuer.SignedMetadata,
 		CredentialConfigurationsSupported: cs,
+		CredentialResponseEncryption:      credential.CredentialRespEnc(*issuer.CredentialResponseEncryption),
 	}
 
 	if issuer.CredentialResponseEncryption != nil {
