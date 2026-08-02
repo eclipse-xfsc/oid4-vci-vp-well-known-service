@@ -34,14 +34,9 @@ spec:
         image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ default .Chart.AppVersion .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
         env:
-          - name: WELLKNOWN_SERVICE_LOG_LEVEL
-            value: {{ .Values.config.loglevel }}
-          - name: WELLKNOWN_SERVICE_IS_DEV
-            value: "{{ .Values.config.isdev }}"
-          - name: WELLKNOWN_SERVICE_LISTEN_ADDR
-            value: {{ .Values.server.http.host }}  
-          - name: WELLKNOWN_SERVICE_LISTEN_PORT
-            value: "{{ .Values.server.http.port }}"
+        {{- $podAnnotations := default dict .Values.podAnnotations }}
+        {{- $injectionEnabled := eq (default "false" (index $podAnnotations "inject.xfsc.io/enabled")) "true" }}
+        {{- if not $injectionEnabled }}
           - name: WELLKNOWN_SERVICE_POSTGRES_HOST
             value: {{ .Values.config.postgres.host }}  
           - name: WELLKNOWN_SERVICE_POSTGRES_PORT
@@ -67,8 +62,15 @@ spec:
           - name: WELLKNOWN_SERVICE_NATS_REQUEST_TIMEOUT
             value: "{{ .Values.config.nats.requesttimeout }}"
           {{- end}} 
-          - name: WELLKNOWN_SERVICE_OPEN_ID_ISSUER
-            value: {{ .Values.config.issuer }}
+          {{- end }}
+          - name: WELLKNOWN_SERVICE_LOG_LEVEL
+            value: {{ .Values.config.loglevel }}
+          - name: WELLKNOWN_SERVICE_IS_DEV
+            value: "{{ .Values.config.isdev }}"
+          - name: WELLKNOWN_SERVICE_LISTEN_ADDR
+            value: {{ .Values.server.http.host }}  
+          - name: WELLKNOWN_SERVICE_LISTEN_PORT
+            value: "{{ .Values.server.http.port }}"  
            {{- if .Values.config.importer.git}}
           - name: WELLKNOWN_SERVICE_CREDENTIAL_ISSUER_IMPORTER
             value: GIT
