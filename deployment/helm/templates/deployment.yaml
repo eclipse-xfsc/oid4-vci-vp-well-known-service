@@ -19,14 +19,14 @@ spec:
     matchLabels:
       app: {{ .Chart.Name | quote }}
 
-  template:
+    template:
     metadata:
       labels:
         app: {{ .Chart.Name | quote }}
-      {{- with .Values.podAnnotations }}
+{{ with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+{{ toYaml . | nindent 8 }}
+{{ end }}
 
     spec:
       serviceAccountName: {{ .Values.serviceAccountName }}
