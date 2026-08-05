@@ -81,6 +81,24 @@ spec:
             {{- end }}
             {{- end }}
 
+            {{- if not $injectionEnabled }}
+            - name: WELLKNOWN_SERVICE_POSTGRES_DATABASE
+              value: {{ .Release.Name | replace "-" "_" }}
+
+            - name: WELLKNOWN_SERVICE_POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgres-credentials
+                  key: "username"
+
+            - name: WELLKNOWN_SERVICE_POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgres-credentials
+                  key: "password"
+
+            {{- end }}
+
             - name: WELLKNOWN_SERVICE_LOG_LEVEL
               value: {{ .Values.config.loglevel | quote }}
 
