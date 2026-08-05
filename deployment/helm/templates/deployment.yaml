@@ -81,7 +81,7 @@ spec:
             {{- end }}
             {{- end }}
 
-            {{- if not $injectionEnabled }}
+            {{- if $injectionEnabled }}
             - name: WELLKNOWN_SERVICE_POSTGRES_DATABASE
               value: {{ .Release.Name | replace "-" "_" }}
 
