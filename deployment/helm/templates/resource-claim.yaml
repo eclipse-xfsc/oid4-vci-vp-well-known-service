@@ -8,7 +8,7 @@ spec:
   type: postgres
 
   providerRef:
-    name: postgres-main
+    name: postgres
 
   externalSecretRef:
     name: {{ .Release.Name }}-postgres-credentials
