@@ -34,8 +34,14 @@ var conf config.Config
 func main() {
 	errGrp, ctx := errgroup.WithContext(context.Background())
 
-	if err := envconfig.Process("WELLKNOWN_SERVICE", &conf); err != nil {
+	if err := envconfig.Process(config.EnvPrefix, &conf); err != nil {
 		panic(fmt.Sprintf("failed to load config from env: %+v", err))
+	}
+
+	err := conf.Validate()
+
+	if err != nil {
+		log.Fatal(err.Error())
 	}
 
 	logger, err := logr.New(conf.LogLevel, conf.BaseConfig.IsDev, nil)
