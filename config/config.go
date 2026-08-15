@@ -28,8 +28,12 @@ type Config struct {
 }
 
 type GatewayConfig struct {
-	LocationHeaderKey string `envconfig:"LOCATION_HEADER_KEY"`
-	JwksUrlHeaderKey  string
+	CredentialIssuerHeaderKey           string `envconfig:"CREDENTIAL_ISSUER_HEADER_KEY"`
+	AuthorizationServerHeaderKey        string `envconfig:"AUTHORIZATION_SERVER_HEADER_KEY"`
+	CredentialEndpointHeaderKey         string `envconfig:"CREDENTIAL_ENDPOINT_HEADER_KEY"`
+	BatchCredentialEndpointHeaderKey    string `envconfig:"BATCH_CREDENTIAL_ENDPOINT_HEADER_KEY"`
+	DeferredCredentialEndpointHeaderKey string `envconfig:"DEFERRED_CREDENTIAL_ENDPOINT_HEADER_KEY"`
+	NotificationEndpointHeaderKey       string `envconfig:"NOTIFICATION_ENDPOINT_HEADER_KEY"`
 }
 
 type CredentialIssuerConfig struct {

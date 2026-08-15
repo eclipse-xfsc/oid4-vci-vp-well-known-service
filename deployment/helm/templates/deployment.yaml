@@ -45,6 +45,25 @@ spec:
             {{- $podAnnotations := default dict .Values.podAnnotations }}
             {{- $injectionEnabled := eq (default "false" (index $podAnnotations "inject.xfsc.io/enabled")) "true" }}
 
+            - name: WELLKNOWN_SERVICE_GATEWAY_CREDENTIAL_ISSUER_HEADER_KEY
+              value: {{ .Values.gateway.credentialIssuerHeaderKey | quote }}
+
+            - name: WELLKNOWN_SERVICE_GATEWAY_AUTHORIZATION_SERVER_HEADER_KEY
+              value: {{ .Values.gateway.authorizationServerHeaderKey | quote }}
+
+            - name: WELLKNOWN_SERVICE_GATEWAY_CREDENTIAL_ENDPOINT_HEADER_KEY
+              value: {{ .Values.gateway.credentialEndpointHeaderKey | quote }}
+
+            - name: WELLKNOWN_SERVICE_GATEWAY_BATCH_CREDENTIAL_ENDPOINT_HEADER_KEY
+              value: {{ .Values.gateway.batchCredentialEndpointHeaderKey | quote }}
+
+            - name: WELLKNOWN_SERVICE_GATEWAY_DEFERRED_CREDENTIAL_ENDPOINT_HEADER_KEY
+              value: {{ .Values.gateway.deferredCredentialEndpointHeaderKey | quote }}
+
+            - name: WELLKNOWN_SERVICE_GATEWAY_NOTIFICATION_ENDPOINT_HEADER_KEY
+              value: {{ .Values.gateway.notificationEndpointHeaderKey | quote }}
+
+
             {{- if not $injectionEnabled }}
             - name: WELLKNOWN_SERVICE_POSTGRES_HOST
               value: {{ .Values.config.postgres.host | quote }}

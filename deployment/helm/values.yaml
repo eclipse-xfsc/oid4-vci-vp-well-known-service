@@ -53,6 +53,14 @@ server:
     host: 0.0.0.0
     port: 8080
 
+gateway:
+  credentialIssuerHeaderKey: X-Credential-Issuer
+  authorizationServerHeaderKey: X-Authorization-Server
+  credentialEndpointHeaderKey: X-Credential-Endpoint
+  batchCredentialEndpointHeaderKey: X-Batch-Credential-Endpoint
+  deferredCredentialEndpointHeaderKey: X-Deferred-Credential-Endpoint
+  notificationEndpointHeaderKey: X-Notification-Endpoint
+
 config:
   loglevel: DEBUG
   isdev: false
