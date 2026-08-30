@@ -29,6 +29,10 @@ func (gw Gateway) enrichCredentialIssuerMetadataFromHeaders(
 	c *gin.Context,
 	metadata *credential.IssuerMetadata,
 ) {
+	if metadata == nil {
+		return
+	}
+
 	if key := gw.conf.CredentialIssuerHeaderKey; key != "" {
 		if value := c.GetHeader(key); value != "" {
 			metadata.CredentialIssuer = value
@@ -50,9 +54,9 @@ func (gw Gateway) enrichCredentialIssuerMetadataFromHeaders(
 		}
 	}
 
-	if key := gw.conf.BatchCredentialEndpointHeaderKey; key != "" {
+	if key := gw.conf.NonceEndpointHeaderKey; key != "" {
 		if value := c.GetHeader(key); value != "" {
-			metadata.BatchCredentialEndpoint = stringPtr(value)
+			metadata.NonceEndpoint = stringPtr(value)
 		}
 	}
 
@@ -86,25 +90,55 @@ func stringPtr(value string) *string {
 func (gw Gateway) WellKnownCredentialIssuerHandler(c *gin.Context) {
 	log := ctxPkg.GetLogger(c)
 
-	tenantId := c.Param("tenantId")
-	if tenantId == "" {
-		c.JSON(404, "Not found.")
+	tenantID := c.Param("tenantId")
+	if tenantID == "" {
+		c.JSON(
+			http.StatusNotFound,
+			gin.H{
+				"error": "not_found",
+			},
+		)
+		return
 	}
 
-	metadata, err := gw.imp.GetCredentialIssuerMetadata(c, tenantId)
-
+	metadata, err := gw.imp.GetCredentialIssuerMetadata(
+		c,
+		tenantID,
+	)
 	if err != nil {
 		status := http.StatusInternalServerError
+
 		if errors.Is(err, importer.ErrNotFound) {
 			status = http.StatusNotFound
 		}
 
 		if err := c.AbortWithError(status, err); err != nil {
-			log.Error(err, "failed to write status")
+			log.Error(
+				err,
+				"failed to write status",
+			)
 		}
+
+		return
 	}
 
-	gw.enrichCredentialIssuerMetadataFromHeaders(c, metadata)
+	if metadata == nil {
+		c.JSON(
+			http.StatusNotFound,
+			gin.H{
+				"error": "not_found",
+			},
+		)
+		return
+	}
 
-	c.JSON(200, metadata)
+	gw.enrichCredentialIssuerMetadataFromHeaders(
+		c,
+		metadata,
+	)
+
+	c.JSON(
+		http.StatusOK,
+		metadata,
+	)
 }

@@ -31,7 +31,7 @@ type GatewayConfig struct {
 	CredentialIssuerHeaderKey           string `envconfig:"CREDENTIAL_ISSUER_HEADER_KEY"`
 	AuthorizationServerHeaderKey        string `envconfig:"AUTHORIZATION_SERVER_HEADER_KEY"`
 	CredentialEndpointHeaderKey         string `envconfig:"CREDENTIAL_ENDPOINT_HEADER_KEY"`
-	BatchCredentialEndpointHeaderKey    string `envconfig:"BATCH_CREDENTIAL_ENDPOINT_HEADER_KEY"`
+	NonceEndpointHeaderKey              string `envconfig:"NONCE_ENDPOINT_HEADER_KEY"`
 	DeferredCredentialEndpointHeaderKey string `envconfig:"DEFERRED_CREDENTIAL_ENDPOINT_HEADER_KEY"`
 	NotificationEndpointHeaderKey       string `envconfig:"NOTIFICATION_ENDPOINT_HEADER_KEY"`
 }
