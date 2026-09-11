@@ -204,12 +204,16 @@ github.com/eclipse-xfsc/nats-message-library v1.1.14 h1:r50RJwEQ6W8rjs500r3pCd6Z
 github.com/eclipse-xfsc/nats-message-library v1.1.14/go.mod h1:BuyOjgbVrW+9fwh7EurE4LcdsrSjF6UHHiWHTOL0Ojs=
 github.com/eclipse-xfsc/nats-message-library v1.5.0-oidvci10 h1:jL5XoOHQ3I7U4aiBiZKT2tvkcceb2OGsDFlZH24UW3Q=
 github.com/eclipse-xfsc/nats-message-library v1.5.0-oidvci10/go.mod h1:41zRMtHJ+vdd9V++5A+iCprQHlWT0nVBq7kSl8e/YoA=
+github.com/eclipse-xfsc/nats-message-library v1.5.0 h1:lazecSf2LLBw9HTVUUkaC6jghIGoRvg9JFxcMoJOdTo=
+github.com/eclipse-xfsc/nats-message-library v1.5.0/go.mod h1:vOqJUxJnd3K2iP++cO3erFUIl7z6XGUn2gvHlaJ8wkM=
 github.com/eclipse-xfsc/oid4-vci-vp-library v1.4.6 h1:7s9z5MMesQyCx4BgWPzG6CovBunLnBqmSKwDzTqa+6A=
 github.com/eclipse-xfsc/oid4-vci-vp-library v1.4.6/go.mod h1:EW5YtHCsHsRdAuxF8Xp5a7PRi1kzsAETXf4+0RH3wyw=
 github.com/eclipse-xfsc/oid4-vci-vp-library v1.7.0-oidvci10 h1:WFtmznee22RT3IpHUxNJOpoB0eg+9H6+c3xmP3nIy3M=
 github.com/eclipse-xfsc/oid4-vci-vp-library v1.7.0-oidvci10/go.mod h1:z3IaBHrKd+ku3eDMDSMSpWLsLNJY/Qn1kZgZE88uC60=
 github.com/eclipse-xfsc/oid4-vci-vp-library v1.7.2-oidvci10 h1:d3crgl2cgTJEVKbx7b5ylumoyochrrmKHe7h3uegZCc=
 github.com/eclipse-xfsc/oid4-vci-vp-library v1.7.2-oidvci10/go.mod h1:z3IaBHrKd+ku3eDMDSMSpWLsLNJY/Qn1kZgZE88uC60=
+github.com/eclipse-xfsc/oid4-vci-vp-library v1.8.1 h1:gME6SDK5iFFrPVxa86YrxLQJYcZHt1VD9yT7g8mcm+w=
+github.com/eclipse-xfsc/oid4-vci-vp-library v1.8.1/go.mod h1:z3IaBHrKd+ku3eDMDSMSpWLsLNJY/Qn1kZgZE88uC60=
 github.com/eclipse-xfsc/ssi-jwt v1.2.1 h1:LQRhJ3Uw7sHmMS51RGHPsgUDbQkKO1NAPlB53VldcnQ=
 github.com/eclipse-xfsc/ssi-jwt v1.2.1/go.mod h1:sYdF2Y0BYEjui8QD++K0kti+8N0riH+aTlf+ynjmQFw=
 github.com/eclipse-xfsc/ssi-jwt/v2 v2.2.0 h1:JDsx/iPimPGWnBy1qvVDc2vvWmyS/yY0Fo4X+lbAYA4=

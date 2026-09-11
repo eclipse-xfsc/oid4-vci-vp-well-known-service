@@ -10,8 +10,8 @@ require (
 	github.com/eapache/go-resiliency v1.6.0
 	github.com/eclipse-xfsc/cloud-event-provider v0.1.5
 	github.com/eclipse-xfsc/microservice-core-go v1.1.1
-	github.com/eclipse-xfsc/nats-message-library v1.5.0-oidvci10
-	github.com/eclipse-xfsc/oid4-vci-vp-library v1.7.2-oidvci10
+	github.com/eclipse-xfsc/nats-message-library v1.5.0
+	github.com/eclipse-xfsc/oid4-vci-vp-library v1.8.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.4
