@@ -54,8 +54,8 @@ spec:
             - name: WELLKNOWN_SERVICE_GATEWAY_CREDENTIAL_ENDPOINT_HEADER_KEY
               value: {{ .Values.gateway.credentialEndpointHeaderKey | quote }}
 
-            - name: WELLKNOWN_SERVICE_GATEWAY_BATCH_CREDENTIAL_ENDPOINT_HEADER_KEY
-              value: {{ .Values.gateway.batchCredentialEndpointHeaderKey | quote }}
+            - name: WELLKNOWN_SERVICE_GATEWAY_NONCE_CREDENTIAL_ENDPOINT_HEADER_KEY
+              value: {{ .Values.gateway.nonceEndpointHeaderKey | quote }}
 
             - name: WELLKNOWN_SERVICE_GATEWAY_DEFERRED_CREDENTIAL_ENDPOINT_HEADER_KEY
               value: {{ .Values.gateway.deferredCredentialEndpointHeaderKey | quote }}

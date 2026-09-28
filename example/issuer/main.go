@@ -69,9 +69,9 @@ var registration = messaging.IssuerRegistration{
 		CredentialIssuer:           "https://cloud-wallet.xfsc.dev",
 		AuthorizationServers:       []string{"https://auth-cloud-wallet.xfsc.dev/realms/master"},
 		CredentialEndpoint:         "https://cloud-wallet.xfsc.dev/api/credential",
-		BatchCredentialEndpoint:    strPtr("https://credential-issuer.eclipse.org/batch_credential"),
+		NonceEndpoint:              strPtr("https://credential-issuer.eclipse.org/nonce"),
 		DeferredCredentialEndpoint: strPtr("https://credential-issuer.eclipse.org/deferred_credential"),
-		CredentialResponseEncryption: credential.CredentialRespEnc{
+		CredentialResponseEncryption: &credential.CredentialResponseEncryption{
 			AlgValuesSupported: []string{"ECDH-ES"},
 			EncValuesSupported: []string{"A128GCM"},
 			EncryptionRequired: false,

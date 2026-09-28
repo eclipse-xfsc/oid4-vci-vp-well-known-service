@@ -57,7 +57,7 @@ gateway:
   credentialIssuerHeaderKey: X-Credential-Issuer
   authorizationServerHeaderKey: X-Authorization-Server
   credentialEndpointHeaderKey: X-Credential-Endpoint
-  batchCredentialEndpointHeaderKey: X-Batch-Credential-Endpoint
+  nonceEndpointHeaderKey: X-Nonce-Endpoint
   deferredCredentialEndpointHeaderKey: X-Deferred-Credential-Endpoint
   notificationEndpointHeaderKey: X-Notification-Endpoint
 

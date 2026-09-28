@@ -5,12 +5,10 @@ import (
 	"errors"
 	"time"
 
+	ctxPkg "github.com/eclipse-xfsc/microservice-core-go/pkg/ctx"
 	"github.com/eclipse-xfsc/oid4-vci-vp-library/model/credential"
 
-	ctxPkg "github.com/eclipse-xfsc/microservice-core-go/pkg/ctx"
-
 	"github.com/eclipse-xfsc/oid4-vci-vp-well-known-service/internal/database"
-
 	"github.com/eclipse-xfsc/oid4-vci-vp-well-known-service/internal/database/issuers"
 )
 
@@ -19,127 +17,172 @@ type IssuerService struct {
 }
 
 func NewIssuerService(store issuers.Store) IssuerService {
-	return IssuerService{store: store}
+	return IssuerService{
+		store: store,
+	}
 }
 
-func (s IssuerService) GetIssuer(ctx context.Context, tenantID string, withInternal bool) (*credential.IssuerMetadata, error) {
+func (s IssuerService) GetIssuer(
+	ctx context.Context,
+	tenantID string,
+	withInternal bool,
+) (*credential.IssuerMetadata, error) {
 	log := ctxPkg.GetLogger(ctx)
+
 	issuer, err := s.store.GetIssuerRecord(ctx, tenantID)
 	if err != nil {
 		log.Error(err, "Issuer Record not found", nil)
 		return nil, err
 	}
 
-	cs := make(map[string]credential.CredentialConfiguration)
+	configurations := make(map[string]credential.CredentialConfiguration)
+
 	for _, supported := range issuer.CredentialsSupported {
 		id := supported.CredentialConfigurationID
 
-		cs[id] = credential.CredentialConfiguration{
-			Format:                               supported.Format,
-			Scope:                                supported.Scope,
+		config := credential.CredentialConfiguration{
+			Format: supported.Format,
+			Scope:  supported.Scope,
+
 			CryptographicBindingMethodsSupported: supported.CryptographicBindingMethodsSupported,
 			CredentialSigningAlgValuesSupported:  supported.CryptographicSigningAlgValuesSupported,
-			ProofTypesSupported:                  supported.ProofTypesSupported,
-			CredentialDefinition:                 supported.CredentialDefinition,
-			Display:                              supported.Display,
-			Vct:                                  supported.Vct,
-			Claims:                               supported.Claims,
-			Order:                                supported.Order,
-			Schema:                               supported.Schema,
-			Subject:                              supported.Subject,
+
+			CredentialDefinition: &supported.CredentialDefinition,
+			ProofTypesSupported:  supported.ProofTypesSupported,
+
+			CredentialMetadata: supported.CredentialMetadata,
+
+			Vct: supported.Vct,
 		}
 
 		if withInternal {
-			config := cs[id]
 			config.Schema = supported.Schema
 			config.Subject = supported.Subject
-			cs[id] = config
 		}
+
+		configurations[id] = config
 	}
 
-	iss := &credential.IssuerMetadata{
-		CredentialIssuer:                  issuer.CredentialIssuer,
-		CredentialEndpoint:                issuer.CredentialEndpoint,
-		AuthorizationServers:              issuer.AuthorizationServers,
-		BatchCredentialEndpoint:           issuer.BatchCredentialEndpoint,
-		DeferredCredentialEndpoint:        issuer.DeferredCredentialEndpoint,
-		NotificationEndpoint:              issuer.NotificationEndpoint,
-		Display:                           issuer.Display,
-		CredentialIdentifiersSupported:    issuer.CredentialIdentifiersSupported,
-		SignedMetadata:                    issuer.SignedMetadata,
-		CredentialConfigurationsSupported: cs,
-		CredentialResponseEncryption:      credential.CredentialRespEnc(*issuer.CredentialResponseEncryption),
+	metadata := &credential.IssuerMetadata{
+		CredentialIssuer:     issuer.CredentialIssuer,
+		AuthorizationServers: issuer.AuthorizationServers,
+		CredentialEndpoint:   issuer.CredentialEndpoint,
+
+		NonceEndpoint:              issuer.NonceEndpoint,
+		DeferredCredentialEndpoint: issuer.DeferredCredentialEndpoint,
+		NotificationEndpoint:       issuer.NotificationEndpoint,
+
+		Display:        issuer.Display,
+		SignedMetadata: issuer.SignedMetadata,
+
+		CredentialConfigurationsSupported: configurations,
 	}
 
 	if issuer.CredentialResponseEncryption != nil {
-		iss.CredentialResponseEncryption = credential.CredentialRespEnc{
+		metadata.CredentialResponseEncryption = &credential.CredentialResponseEncryption{
 			AlgValuesSupported: issuer.CredentialResponseEncryption.AlgValuesSupported,
 			EncValuesSupported: issuer.CredentialResponseEncryption.EncValuesSupported,
 			EncryptionRequired: issuer.CredentialResponseEncryption.EncryptionRequired,
 		}
 	}
 
-	return iss, nil
+	return metadata, nil
 }
 
-// UpsertIssuer will store the given issuer or, if it already exists, update the existing record
-func (s IssuerService) UpsertIssuer(ctx context.Context, tenantID string, issuer credential.IssuerMetadata) error {
+// UpsertIssuer stores the given issuer or updates the existing record.
+func (s IssuerService) UpsertIssuer(
+	ctx context.Context,
+	tenantID string,
+	issuerMetadata credential.IssuerMetadata,
+) error {
 	log := ctxPkg.GetLogger(ctx)
 
 	storedIssuer, err := s.store.GetIssuerRecord(ctx, tenantID)
 	if err != nil && !errors.Is(err, database.ErrNotFound) {
 		return err
 	}
-	now := time.Now()
-	cs := make([]issuers.CredentialsSupported, 0)
-	for ccid, supported := range issuer.CredentialConfigurationsSupported {
 
-		sup := issuers.CredentialsSupported{
-			CredentialConfigurationID:              ccid,
-			Format:                                 supported.Format,
-			Scope:                                  supported.Scope,
-			CryptographicBindingMethodsSupported:   supported.CryptographicBindingMethodsSupported,
-			CryptographicSigningAlgValuesSupported: supported.CredentialSigningAlgValuesSupported,
-			CredentialDefinition:                   supported.CredentialDefinition,
-			ProofTypesSupported:                    supported.ProofTypesSupported,
-			Schema:                                 supported.Schema,
-			Subject:                                supported.Subject,
-			Display:                                supported.Display,
-			Vct:                                    supported.Vct,
-			Claims:                                 supported.Claims,
-			Order:                                  supported.Order,
-			LastSeen:                               now,
-			FirstSeen:                              now,
+	now := time.Now()
+
+	configurations := make(
+		[]issuers.CredentialsSupported,
+		0,
+		len(issuerMetadata.CredentialConfigurationsSupported),
+	)
+
+	for configurationID, supported := range issuerMetadata.CredentialConfigurationsSupported {
+		var credentialDefinition credential.CredentialDefinition
+
+		if supported.CredentialDefinition != nil {
+			credentialDefinition = *supported.CredentialDefinition
 		}
-		cs = append(cs, sup)
+
+		configurations = append(
+			configurations,
+			issuers.CredentialsSupported{
+				TenantID:                  tenantID,
+				CredentialConfigurationID: configurationID,
+
+				Format: supported.Format,
+				Scope:  supported.Scope,
+
+				CryptographicBindingMethodsSupported:   supported.CryptographicBindingMethodsSupported,
+				CryptographicSigningAlgValuesSupported: supported.CredentialSigningAlgValuesSupported,
+
+				CredentialDefinition: credentialDefinition,
+				ProofTypesSupported:  supported.ProofTypesSupported,
+
+				CredentialMetadata: supported.CredentialMetadata,
+
+				Vct: supported.Vct,
+
+				Schema:  supported.Schema,
+				Subject: supported.Subject,
+
+				FirstSeen: now,
+				LastSeen:  now,
+			},
+		)
 	}
 
-	isNew := storedIssuer == nil
+	if storedIssuer == nil {
+		newIssuer := issuers.Issuer{
+			TenantID: tenantID,
 
-	if isNew {
-		storedIssuer = &issuers.Issuer{
-			TenantID:                   tenantID,
-			CredentialIssuer:           issuer.CredentialIssuer,
-			AuthorizationServers:       issuer.AuthorizationServers,
-			CredentialEndpoint:         issuer.CredentialEndpoint,
-			BatchCredentialEndpoint:    issuer.BatchCredentialEndpoint,
-			DeferredCredentialEndpoint: issuer.DeferredCredentialEndpoint,
-			NotificationEndpoint:       issuer.NotificationEndpoint,
-			CredentialResponseEncryption: &issuers.CredentialRespEnc{
-				AlgValuesSupported: issuer.CredentialResponseEncryption.AlgValuesSupported,
-				EncValuesSupported: issuer.CredentialResponseEncryption.EncValuesSupported,
-				EncryptionRequired: issuer.CredentialResponseEncryption.EncryptionRequired,
-			},
-			CredentialsSupported:           cs,
-			LastSeen:                       now,
-			FirstSeen:                      now,
-			Display:                        issuer.Display,
-			SignedMetadata:                 issuer.SignedMetadata,
-			CredentialIdentifiersSupported: issuer.CredentialIdentifiersSupported,
+			CredentialIssuer: issuerMetadata.CredentialIssuer,
+
+			AuthorizationServers: issuerMetadata.AuthorizationServers,
+			CredentialEndpoint:   issuerMetadata.CredentialEndpoint,
+
+			NonceEndpoint:              issuerMetadata.NonceEndpoint,
+			DeferredCredentialEndpoint: issuerMetadata.DeferredCredentialEndpoint,
+			NotificationEndpoint:       issuerMetadata.NotificationEndpoint,
+
+			CredentialsSupported: configurations,
+
+			Display:        issuerMetadata.Display,
+			SignedMetadata: issuerMetadata.SignedMetadata,
+
+			FirstSeen: now,
+			LastSeen:  now,
 		}
 
-		if err := s.store.InsertIssuerRecord(ctx, *storedIssuer); err != nil {
-			log.Error(err, "failed to insert new issuer", "prev", errors.Unwrap(err))
+		if issuerMetadata.CredentialResponseEncryption != nil {
+			newIssuer.CredentialResponseEncryption = &issuers.CredentialRespEnc{
+				AlgValuesSupported: issuerMetadata.CredentialResponseEncryption.AlgValuesSupported,
+				EncValuesSupported: issuerMetadata.CredentialResponseEncryption.EncValuesSupported,
+				EncryptionRequired: issuerMetadata.CredentialResponseEncryption.EncryptionRequired,
+			}
+		}
+
+		if err := s.store.InsertIssuerRecord(ctx, newIssuer); err != nil {
+			log.Error(
+				err,
+				"failed to insert new issuer",
+				"prev",
+				errors.Unwrap(err),
+			)
+
 			return err
 		}
 
@@ -147,98 +190,163 @@ func (s IssuerService) UpsertIssuer(ctx context.Context, tenantID string, issuer
 	}
 
 	update := issuers.IssuerUpdate{
-		AuthorizationServers:           issuer.AuthorizationServers,
-		CredentialEndpoint:             &issuer.CredentialEndpoint,
-		BatchCredentialEndpoint:        issuer.BatchCredentialEndpoint,
-		DeferredCredentialEndpoint:     issuer.DeferredCredentialEndpoint,
-		NotificationEndpoint:           issuer.NotificationEndpoint,
-		SignedMetadata:                 issuer.SignedMetadata,
-		CredentialIdentifiersSupported: issuer.CredentialIdentifiersSupported,
-		Display:                        issuer.Display,
-		LastSeen:                       &now,
+		AuthorizationServers: issuerMetadata.AuthorizationServers,
+		CredentialEndpoint:   &issuerMetadata.CredentialEndpoint,
+
+		NonceEndpoint:              issuerMetadata.NonceEndpoint,
+		DeferredCredentialEndpoint: issuerMetadata.DeferredCredentialEndpoint,
+		NotificationEndpoint:       issuerMetadata.NotificationEndpoint,
+
+		SignedMetadata: issuerMetadata.SignedMetadata,
+		Display:        issuerMetadata.Display,
+
+		LastSeen: &now,
 	}
 
-	finalCs := make([]issuers.CredentialsSupported, 0)
-
-	//Update last seen if exist
-	for i, c := range finalCs {
-		for _, x := range cs {
-			if x.CredentialConfigurationID == c.CredentialConfigurationID {
-				finalCs[i].LastSeen = now
-				continue
-			}
+	if issuerMetadata.CredentialResponseEncryption != nil {
+		update.CredentialResponseEncryption = &issuers.CredentialRespEnc{
+			AlgValuesSupported: issuerMetadata.CredentialResponseEncryption.AlgValuesSupported,
+			EncValuesSupported: issuerMetadata.CredentialResponseEncryption.EncValuesSupported,
+			EncryptionRequired: issuerMetadata.CredentialResponseEncryption.EncryptionRequired,
 		}
 	}
 
-	for _, x := range cs {
-		found := false
-		for _, c := range finalCs {
-			if x.CredentialConfigurationID == c.CredentialConfigurationID {
-				found = true
-				break
-			}
-		}
+	existingConfigurations := make(
+		map[string]issuers.CredentialsSupported,
+		len(storedIssuer.CredentialsSupported),
+	)
 
-		if !found {
-			finalCs = append(finalCs, x)
-		}
+	for _, existing := range storedIssuer.CredentialsSupported {
+		existingConfigurations[existing.CredentialConfigurationID] = existing
 	}
 
-	update.CredentialsSupported = finalCs
+	finalConfigurations := make(
+		[]issuers.CredentialsSupported,
+		0,
+		len(configurations),
+	)
 
-	if err := s.store.UpdateIssuerRecord(ctx, tenantID, issuer.CredentialIssuer, update); err != nil {
-		log.Error(err, "failed to update existing issuer")
+	for _, configuration := range configurations {
+		if existing, ok := existingConfigurations[configuration.CredentialConfigurationID]; ok {
+			configuration.FirstSeen = existing.FirstSeen
+		}
+
+		configuration.LastSeen = now
+
+		finalConfigurations = append(
+			finalConfigurations,
+			configuration,
+		)
+	}
+
+	update.CredentialsSupported = finalConfigurations
+
+	if err := s.store.UpdateIssuerRecord(
+		ctx,
+		tenantID,
+		issuerMetadata.CredentialIssuer,
+		update,
+	); err != nil {
+		log.Error(
+			err,
+			"failed to update existing issuer",
+		)
+
 		return err
 	}
 
 	return nil
 }
 
-// UpsertIssuer will store the given issuer or, if it already exists, update the existing record
-func (s IssuerService) UpsertConfiguration(ctx context.Context, tenantID string, configurationId string, configuration credential.CredentialConfiguration) error {
+// UpsertConfiguration stores or updates a single credential configuration.
+func (s IssuerService) UpsertConfiguration(
+	ctx context.Context,
+	tenantID string,
+	configurationID string,
+	configuration credential.CredentialConfiguration,
+) error {
 	log := ctxPkg.GetLogger(ctx)
 
-	storedConfiguration, err := s.store.GetConfigurationsRecord(ctx, tenantID)
+	storedConfigurations, err := s.store.GetConfigurationsRecord(
+		ctx,
+		tenantID,
+	)
 	if err != nil && !errors.Is(err, database.ErrNotFound) {
 		return err
 	}
+
 	now := time.Now()
 
-	sup := issuers.CredentialsSupported{
-		TenantID:                               tenantID,
-		CredentialConfigurationID:              configurationId,
-		Format:                                 configuration.Format,
-		Scope:                                  configuration.Scope,
+	var credentialDefinition credential.CredentialDefinition
+
+	if configuration.CredentialDefinition != nil {
+		credentialDefinition = *configuration.CredentialDefinition
+	}
+
+	supported := issuers.CredentialsSupported{
+		TenantID:                  tenantID,
+		CredentialConfigurationID: configurationID,
+
+		Format: configuration.Format,
+		Scope:  configuration.Scope,
+
 		CryptographicBindingMethodsSupported:   configuration.CryptographicBindingMethodsSupported,
 		CryptographicSigningAlgValuesSupported: configuration.CredentialSigningAlgValuesSupported,
-		CredentialDefinition:                   configuration.CredentialDefinition,
-		ProofTypesSupported:                    configuration.ProofTypesSupported,
-		Schema:                                 configuration.Schema,
-		Subject:                                configuration.Subject,
-		Display:                                configuration.Display,
-		Vct:                                    configuration.Vct,
-		Claims:                                 configuration.Claims,
-		Order:                                  configuration.Order,
-		LastSeen:                               now,
+
+		CredentialDefinition: credentialDefinition,
+		ProofTypesSupported:  configuration.ProofTypesSupported,
+
+		CredentialMetadata: configuration.CredentialMetadata,
+
+		Vct: configuration.Vct,
+
+		Schema:  configuration.Schema,
+		Subject: configuration.Subject,
+
+		LastSeen: now,
 	}
+
 	isNew := true
-	finalCs := make([]issuers.CredentialsSupported, 0)
-	for _, c := range storedConfiguration {
-		if c.CredentialConfigurationID == configurationId {
+
+	finalConfigurations := make(
+		[]issuers.CredentialsSupported,
+		0,
+		len(storedConfigurations)+1,
+	)
+
+	for _, existing := range storedConfigurations {
+		if existing.CredentialConfigurationID == configurationID {
 			isNew = false
+			supported.FirstSeen = existing.FirstSeen
+
 			continue
 		}
-		finalCs = append(finalCs, c)
+
+		finalConfigurations = append(
+			finalConfigurations,
+			existing,
+		)
 	}
-	// cs := make([]issuers.CredentialsSupported, 0)
 
 	if isNew {
-		sup.FirstSeen = now
+		supported.FirstSeen = now
 	}
 
-	finalCs = append(finalCs, sup)
-	if err := s.store.UpdateConfigurationsSupported(ctx, tenantID, finalCs); err != nil {
-		log.Error(err, "failed to update existing issuer")
+	finalConfigurations = append(
+		finalConfigurations,
+		supported,
+	)
+
+	if err := s.store.UpdateConfigurationsSupported(
+		ctx,
+		tenantID,
+		finalConfigurations,
+	); err != nil {
+		log.Error(
+			err,
+			"failed to update credential configuration",
+		)
+
 		return err
 	}
 

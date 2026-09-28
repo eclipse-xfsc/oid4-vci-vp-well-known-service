@@ -115,7 +115,7 @@ The Well-Known Service can optionally override or extend selected Credential Iss
 | `WELLKNOWN_SERVICE_GATEWAY_CREDENTIAL_ISSUER_HEADER_KEY` | Overrides `credential_issuer`. |
 | `WELLKNOWN_SERVICE_GATEWAY_AUTHORIZATION_SERVER_HEADER_KEY` | Appends an authorization server if not already present. |
 | `WELLKNOWN_SERVICE_GATEWAY_CREDENTIAL_ENDPOINT_HEADER_KEY` | Overrides `credential_endpoint`. |
-| `WELLKNOWN_SERVICE_GATEWAY_BATCH_CREDENTIAL_ENDPOINT_HEADER_KEY` | Overrides `batch_credential_endpoint`. |
+| `WELLKNOWN_SERVICE_GATEWAY_NONCE__ENDPOINT_HEADER_KEY` | Overrides `nonce_endpoint`. |
 | `WELLKNOWN_SERVICE_GATEWAY_DEFERRED_CREDENTIAL_ENDPOINT_HEADER_KEY` | Overrides `deferred_credential_endpoint`. |
 | `WELLKNOWN_SERVICE_GATEWAY_NOTIFICATION_ENDPOINT_HEADER_KEY` | Overrides `notification_endpoint`. |
 
@@ -128,7 +128,7 @@ gateway:
   credentialIssuerHeaderKey: ""
   authorizationServerHeaderKey: ""
   credentialEndpointHeaderKey: ""
-  batchCredentialEndpointHeaderKey: ""
+  nonceEndpointHeaderKey: ""
   deferredCredentialEndpointHeaderKey: ""
   notificationEndpointHeaderKey: ""
 ```
@@ -140,7 +140,7 @@ gateway:
   credentialIssuerHeaderKey: X-Credential-Issuer
   authorizationServerHeaderKey: X-Authorization-Server
   credentialEndpointHeaderKey: X-Credential-Endpoint
-  batchCredentialEndpointHeaderKey: X-Batch-Credential-Endpoint
+  nonceEndpointHeaderKey: X-Nonce-Endpoint
   deferredCredentialEndpointHeaderKey: X-Deferred-Credential-Endpoint
   notificationEndpointHeaderKey: X-Notification-Endpoint
 ```
@@ -154,7 +154,7 @@ The following Credential Issuer Metadata fields can be modified dynamically:
 | `credential_issuer` | Replaced from request header |
 | `authorization_servers` | Header value appended uniquely |
 | `credential_endpoint` | Replaced from request header |
-| `batch_credential_endpoint` | Replaced from request header |
+| `nonce_endpoint` | Replaced from request header |
 | `deferred_credential_endpoint` | Replaced from request header |
 | `notification_endpoint` | Replaced from request header |
 
